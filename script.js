@@ -8,6 +8,7 @@ const buttons = document.querySelectorAll(".calculator-keys>button");
 let cache = [];          // Przechowuje wartości liczbowe
 let cacheValue = "";     // Aktualna wpisywana wartość
 let lastOperator = null; // Ostatnio użyty operator (+, -, *, /)
+let expression = "";     // NOWE: ciąg znaków reprezentujący całe działanie
 
 // Obsługa przycisków
 buttons.forEach((button) => {
@@ -16,20 +17,19 @@ buttons.forEach((button) => {
     // Obsługa operatorów
     if (button.classList.contains('operator')) {
         button.addEventListener('click', () => {
-            if (cacheValue !== "") {
-                const number = parseFloat(cacheValue);
-                cache.push(number);
-                cacheValue = "";
-                lastOperator = value;
-                clearDisplay();
+            // Dodaj operator do wyrażenia tylko jeśli nie zaczynamy od operatora
+            if (expression !== "" && !isOperator(expression.slice(-1))) {
+                expression += value;
+                display.innerText = expression;
             }
         });
 
     // Obsługa przecinka (dziesiętne liczby)
     } else if (button.classList.contains('decimal')) {
         button.addEventListener('click', () => {
-            if (!cacheValue.includes('.')) {
-                setDisplayValue('.');
+            if (!endsWithDecimalPart(expression)) {
+                expression += '.';
+                display.innerText = expression;
             }
         });
 
@@ -40,22 +40,20 @@ buttons.forEach((button) => {
             cache = [];
             cacheValue = "";
             lastOperator = null;
+            expression = "";
         });
 
     // Obsługa przycisku "=" - wykonuje działanie
     } else if (button.classList.contains('equal-sign')) {
         button.addEventListener('click', () => {
-            if (cacheValue !== "" && lastOperator !== null) {
-                const number = parseFloat(cacheValue);
-                cache.push(number);
-                executeOperation();
-            }
+            equal();
         });
 
     // Obsługa przycisków z cyframi
     } else {
         button.addEventListener('click', () => {
-            setDisplayValue(value);
+            expression += value;
+            display.innerText = expression;
         });
     }
 });
@@ -109,4 +107,29 @@ function executeOperation() {
     cache = [result];  // wynik można wykorzystać dalej
     cacheValue = "";
     lastOperator = null;
+}
+
+// NOWA funkcja: sprawdza, czy znak to operator
+function isOperator(char) {
+    return ['+', '-', '*', '/'].includes(char);
+}
+
+// NOWA funkcja: sprawdza, czy liczba nie ma już części dziesiętnej
+function endsWithDecimalPart(expr) {
+    const parts = expr.split(/[\+\-\*\/]/);
+    const lastPart = parts[parts.length - 1];
+    return lastPart.includes('.');
+}
+
+// NOWA funkcja equal() - obsługa "=" z eval()
+function equal() {
+    try {
+        // Użycie eval do obliczenia wyrażenia
+        const result = eval(expression); // Tak, tutaj eval jest OK, bo kontrolujemy dane wejściowe
+        display.innerText = result;
+        expression = result.toString(); // żeby można było dalej liczyć
+    } catch (e) {
+        display.innerText = "Błąd";
+        expression = "";
+    }
 }
