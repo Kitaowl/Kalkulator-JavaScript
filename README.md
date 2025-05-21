@@ -44,3 +44,6 @@ Trzeba dokończyć pisanie kodu kalkulatora.
 ---
 
 Ten projekt jest częścią modułu 0: Kalkulator i ma na celu naukę podstaw programowania w JavaScript.
+
+# Kalkulator można zobaczyć tutaj
+https://kitaowl.github.io/Kalkulator-JavaScript/
