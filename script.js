@@ -1,135 +1,146 @@
-// Pobranie referencji do wyświetlacza kalkulatora
-const display = document.querySelector('.calculator-screen');
+const display = document.querySelector(".calculator-screen");
 
-// Pobranie wszystkich przycisków z kalkulatora
 const buttons = document.querySelectorAll(".calculator-keys>button");
 
-// Zmienne pomocnicze
-let cache = [];          // Przechowuje wartości liczbowe
-let cacheValue = "";     // Aktualna wpisywana wartość
-let lastOperator = null; // Ostatnio użyty operator (+, -, *, /)
-let expression = "";     // NOWE: ciąg znaków reprezentujący całe działanie
-
-// Obsługa przycisków
+let buttonNum = [];
+let buttonOperator = [];
+let buttonFunction = [];  
+let cache = [];
+let cacheValue = "";
+let lastOperator = "";
 buttons.forEach((button) => {
-    const value = button.value;
-
-    // Obsługa operatorów
-    if (button.classList.contains('operator')) {
-        button.addEventListener('click', () => {
-            // Dodaj operator do wyrażenia tylko jeśli nie zaczynamy od operatora
-            if (expression !== "" && !isOperator(expression.slice(-1))) {
-                expression += value;
-                display.innerText = expression;
-            }
+  if (button.classList.contains("operator")) {
+    buttonOperator.push(button);
+    const operator = button.value;
+    switch (operator) {
+      case "+":
+        button.addEventListener("click", (e) => {
+          cache.push(operator);
+          setDisplayValue(operator);
         });
-
-    // Obsługa przecinka (dziesiętne liczby)
-    } else if (button.classList.contains('decimal')) {
-        button.addEventListener('click', () => {
-            if (!endsWithDecimalPart(expression)) {
-                expression += '.';
-                display.innerText = expression;
-            }
+        break;
+      case "-":
+        button.addEventListener("click", (e) => {
+          cache.push(operator);
+          setDisplayValue(operator);
         });
-
-    // Obsługa przycisku "AC" - czyści wszystko
-    } else if (button.classList.contains('all-clear')) {
-        button.addEventListener('click', () => {
-            clearDisplay();
-            cache = [];
-            cacheValue = "";
-            lastOperator = null;
-            expression = "";
+        break;
+      case "*":
+        button.addEventListener("click", (e) => {
+          cache.push(operator);
+          setDisplayValue(operator);
         });
-
-    // Obsługa przycisku "=" - wykonuje działanie
-    } else if (button.classList.contains('equal-sign')) {
-        button.addEventListener('click', () => {
-            equal();
+        break;
+      case "/":
+        button.addEventListener("click", (e) => {
+          cache.push(operator);
+          setDisplayValue(operator);
         });
-
-    // Obsługa przycisków z cyframi
-    } else {
-        button.addEventListener('click', () => {
-            expression += value;
-            display.innerText = expression;
-        });
+        break;
     }
+  }
+  // Moliwość dodawania liczb dziesiętnych
+  else if (button.classList.contains("decimal")) {
+    button.addEventListener("click", (e) => {
+      if (cache[cache.length - 1] !== '.') {
+        cache.push('.');
+        console.log(cache);
+        setDisplayValue(".");
+      }
+    });
+  } else if (button.classList.contains("all-clear")) {
+    buttonFunction.push(button);
+    button.addEventListener("click", (e) => {
+      clearDisplay();
+      cache = [];
+    });
+  } else if (button.classList.contains("equal-sign")) {
+    buttonFunction.push(button);
+    button.addEventListener("click", (e) => {
+      equal();
+    });
+  } else {
+    buttonNum.push(button);
+    buttonFunction.push(button);
+    button.addEventListener("click", (e) => {
+      cache.push(parseFloat(e.target.value));
+      setDisplayValue(e.target.value);
+      console.log(cache);
+    });
+  }
 });
 
-
-// Dodaje wartość do wyświetlacza i zmiennej cacheValue
 function setDisplayValue(value) {
-    display.innerText += value;
-    cacheValue += value;
+  display.innerText += value;
+  console.log("value:" + value);
+  cacheValue += value;
 }
-
-// Czyści wyświetlacz i zmienną cacheValue
 function clearDisplay() {
-    display.innerText = "";
-    cacheValue = "";
+  display.innerText = "";
+  cacheValue = "";
+}
+let test = true;
+function add(a) {
+  cache.push(a);
+  console.log(cache);
+}
+function subtract(a) {
+  cache.push(a);
+  console.log(cache);
+}
+
+function multiply(a) {
+  cache.push(a);
+  console.log(cache);
+}
+
+function division(a) {
+  cache.push(a);
+  console.log(cache);
 }
 
 
-// Wykonuje działanie w zależności od ostatniego operatora
-function executeOperation() {
-    let result;
-
-    const a = cache[0];
-    const b = cache[1];
-
-    switch (lastOperator) {
-        case '+':
-            result = a + b;
-            break;
-        case '-':
-            result = a - b;
-            break;
-        case '*':
-            result = a * b;
-            break;
-        case '/':
-            if (b === 0) {
-                setDisplayValue("Błąd");
-                cache = [];
-                cacheValue = "";
-                lastOperator = null;
-                return;
-            }
-            result = a / b;
-            break;
-    }
-
-    // Wyczyść wszystko i wyświetl wynik
-    clearDisplay();
-    setDisplayValue(result);
-    cache = [result];  // wynik można wykorzystać dalej
-    cacheValue = "";
-    lastOperator = null;
-}
-
-// NOWA funkcja: sprawdza, czy znak to operator
-function isOperator(char) {
-    return ['+', '-', '*', '/'].includes(char);
-}
-
-// NOWA funkcja: sprawdza, czy liczba nie ma już części dziesiętnej
-function endsWithDecimalPart(expr) {
-    const parts = expr.split(/[\+\-\*\/]/);
-    const lastPart = parts[parts.length - 1];
-    return lastPart.includes('.');
-}
-
-// NOWA funkcja equal() - obsługa "=" z eval()
 function equal() {
+  if (cache.length === 0) return;
+
+  const expression = cache.join('').replaceAll(/(\*|\/|\+|-)$/g, '');
+  
+  // Zabezpieczenie przed złymi danymi
+  const safePattern = /^[0-9+\-*/. ]+$/;
+
+  if (safePattern.test(expression)) {
     try {
-        // Użycie eval do obliczenia wyrażenia
-        const result = eval(expression); // Tak, tutaj eval jest OK, bo kontrolujemy dane wejściowe
-        display.innerText = result;
-        expression = result.toString(); // żeby można było dalej liczyć
-    } catch (e) {
-        display.innerText = "Błąd";
-        expression = "";
+      const result = eval(expression);
+      clearDisplay();
+      setDisplayValue(result.toString());
+      cache = [result];
+    } catch (error) {
+      clearDisplay();
+      setDisplayValue("Error: Invalid expression");
+      cache = [];
     }
+  } else {
+    clearDisplay();
+    setDisplayValue("Error: Invalid expression");
+    cache = [];
+  }
 }
+
+// Sprawdź, jaki operator został wybrany jako ostatni i czy została podana liczba, wtedy wykonaj działanie ostatniego operatora.
+// Jeśli nie podano liczby, a kliknięto operator, wyświetl wartość z pamięci podręcznej (cache).
+
+// Metoda/funkcja mnożenia
+
+// Metoda/funkcja dzielenia
+
+// Metoda/funkcja dodawania liczb zmiennoprzecinkowych: dodawany jest przecinek, a wartości float muszą zawierać kropkę (np. 1.2 zamiast 1,2).
+
+// Te zmienne nie są wykorzystywane. Dodaje się do nich przyciski z kalkulatora, ale potem nie są używane.
+// Pasowałoby je usunąć z kodu.
+// let buttonNum = [];
+// let buttonOperator = [];
+// let buttonFunction = [];
+
+// Gdy wszystko będzie działać, dopisz komentarze wyjaśniające działanie kodu oraz udokumentuj go w plikach Markdown dokumentacji:
+// https://github.com/Code-V-Craft/Documentation
+// Ten kod powinien być w Moduł 0: Kalkulator
