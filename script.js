@@ -25,6 +25,7 @@ buttons.forEach((button) => {
           setDisplayValue(operator);
         });
         break;
+        
       case "*":
         button.addEventListener("click", (e) => {
           cache.push(operator);
@@ -89,6 +90,7 @@ function subtract(a) {
   console.log(cache);
 }
 
+// Dodanie funkcji mnożenia i dzielenia
 function multiply(a) {
   cache.push(a);
   console.log(cache);
